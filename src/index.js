@@ -4,10 +4,15 @@ import reportWebVitals from './reportWebVitals';
 import styled from 'styled-components';
 import 'reset-css';
 import { DragDropContext } from 'react-beautiful-dnd';
+import Navbar from 'react-bootstrap/Navbar';
+import Container from 'react-bootstrap/Container';
+import Form from 'react-bootstrap/Form';
+import FormControl from 'react-bootstrap/FormControl';
+import Button from 'react-bootstrap/Button';
 
 import Swimlane from './swimlane';
 
-const Container = styled.div`
+const SwimlaneContainer = styled.div`
 	display: flex;
 `;
 
@@ -60,7 +65,11 @@ class App extends React.Component {
 			boats: [],
 			swimlaneOrder: [],
 			DataisLoaded: false,
+			isAddingBoat: false,
+			newBoatName: "",
 		};
+
+		this.handleClick = this.handleClick.bind(this);
 	}
 
 	// ComponentDidMount is used to execute the API fetch
@@ -146,32 +155,47 @@ class App extends React.Component {
 				this.setState(newState);
 			});
 		}
+	}
 
-		/*
-		// Getting the swimlane and boat
-		const swimlane = this.state.swimlanes.filter(swimlane => swimlane._id === source.droppableId)[0];
-		const boat = this.state.boats.filter(boat => boat._id === draggableId)[0];
+	handleClick() {
+		if (this.state.newBoatName) {
+			this.setState(prevState => ({
+				isAddingBoat: true
+			}));
 
-		// Removing the dragged boat from the BoatList in the Swimlane
-		const newBoats = Array.from(this.state.boats);
-		newBoats.splice(source.index, 1);
-		newBoats.splice(destination.index, 0, boat);
+			const requestOptions = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ name: this.state.newBoatName })
+			};
 
-		const newBoat = {
-			boat,
-			inLane: 
-		};
+			fetch(
+				requestURL + "/boat", requestOptions
+			).then(
+				response => response.json()
+			).then(result => {
+				console.log(result);
+				// Add the new boat to the boats list
+				const newBoats = Array.from(this.state.boats);
+				newBoats.push(result);
+				const newState = {
+				...this.state,
+					boats: newBoats,
+					isAddingBoat: false
+				};
+				this.setState(newState);
+			});
 
-		const newState = {
-			this.state,
-			boats: {
-				this.state.boats,
-				[newBoat
-			},
-		};
+			console.log(this.state.newBoatName);
+		}
+	}
 
-		this.setState(newState);
-		*/
+	updateInputValue(evt) {
+		const val = evt.target.value;
+
+		this.setState({
+			newBoatName: val
+		});
 	}
 
 	render() {
@@ -188,20 +212,42 @@ class App extends React.Component {
 		}
 
 		return (
-			<DragDropContext
-				onDragEnd={this.onDragEnd}
-			>
+			<Container>
+				<Navbar bg="dark" fixed="bottom">
+					<Navbar.Toggle aria-controls="basic-navbar-nav" />
+					<Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
+						<Form className="d-flex">
+							<input
+								placeholder="New boat name here"
+								className="me-2"
+								value={this.state.newBoatName}
+								onChange={evt => this.updateInputValue(evt)}
+							/>
+							<Button
+								variant="outline-success"
+								disabled={this.state.isAddingBoat}
+								onClick={!this.state.isAddingBoat ? this.handleClick : null }
+							>Add new boat</Button>
+						</Form>
+					</Navbar.Collapse>
+				</Navbar>
 				<Container>
-				{
-					this.state.swimlaneOrder.map(swimlaneOrderIndex => {
-						const swimlane = this.state.swimlanes.filter(swimlane => swimlane._id === swimlaneOrderIndex)[0];
-						const boats = this.state.boats.filter((boat) => boat.inLane === swimlane._id);
+					<DragDropContext
+						onDragEnd={this.onDragEnd}
+					>
+						<SwimlaneContainer>
+						{
+							this.state.swimlaneOrder.map(swimlaneOrderIndex => {
+								const swimlane = this.state.swimlanes.filter(swimlane => swimlane._id === swimlaneOrderIndex)[0];
+								const boats = this.state.boats.filter((boat) => boat.inLane === swimlane._id);
 
-						return <Swimlane key={swimlane._id} swimlane={swimlane} boats={boats} />;
-					})
-				}
+								return <Swimlane key={swimlane._id} swimlane={swimlane} boats={boats} />;
+							})
+						}
+						</SwimlaneContainer>
+					</DragDropContext>
 				</Container>
-			</DragDropContext>
+			</Container>
 		);
 	}
 };
