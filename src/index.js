@@ -1,21 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import reportWebVitals from './reportWebVitals';
-import styled from 'styled-components';
 import 'reset-css';
 import { DragDropContext } from 'react-beautiful-dnd';
 import Navbar from 'react-bootstrap/Navbar';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
-import FormControl from 'react-bootstrap/FormControl';
 import Button from 'react-bootstrap/Button';
+import Row from 'react-bootstrap/Row';
 import socketIOClient from 'socket.io-client';
 
 import Swimlane from './swimlane';
-
-const SwimlaneContainer = styled.div`
-	display: flex;
-`;
 
 const requestURL = process.env.REACT_APP_BOATAPI_HOST + "/api";
 const socketURL = process.env.REACT_APP_BOATWS_HOST;
@@ -41,15 +36,18 @@ class App extends React.Component {
 
 	componentDidMount() {
 		this.handleClick = this.handleClick.bind(this);
-		this.state.socket = socketIOClient(socketURL);
-		this.state.socket.on("message", data => {
-			if (data.type === "moveBoat") {
-				this.updateBoat(data.id, data.destination);
-			} else if (data.type === "newBoat") {
-				this.addBoat(data.boat);
-			} else if (data.type === "deleteBoat") {
-				this.deleteBoat(data.id);
-			}
+		this.setState({
+			socket: socketIOClient(socketURL),
+		}, () => {
+			this.state.socket.on("message", data => {
+				if (data.type === "moveBoat") {
+					this.updateBoat(data.id, data.destination);
+				} else if (data.type === "newBoat") {
+					this.addBoat(data.boat);
+				} else if (data.type === "deleteBoat") {
+					this.deleteBoat(data.id);
+				}
+			});
 		});
 
 		const requestOptions = {
@@ -88,9 +86,9 @@ class App extends React.Component {
 	}
 
 	updateBoat = (id, destination) => {
-		var index = this.state.boats.findIndex(x => x._id == id);
+		var index = this.state.boats.findIndex(x => x._id === id);
 
-		if (index == -1) return;
+		if (index === -1) return;
 		
 		this.setState({
 			boats: [
@@ -107,14 +105,15 @@ class App extends React.Component {
 			boats: [
 				...this.state.boats,
 				boat,
-			]
+			],
+			isAddingBoat: false,
 		});
 	}
 
 	deleteBoat = (id) => {
-		var index = this.state.boats.findIndex(x => x._id == id);
+		var index = this.state.boats.findIndex(x => x._id === id);
 		
-		if (index == -1) return;
+		if (index === -1) return;
 
 		this.setState({
 			boats: [
@@ -236,7 +235,7 @@ class App extends React.Component {
 		}
 
 		return (
-			<Container>
+			<Container fluid>
 				<Navbar bg="dark" fixed="bottom">
 					<Navbar.Toggle aria-controls="basic-navbar-nav" />
 					<Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
@@ -248,18 +247,18 @@ class App extends React.Component {
 								onChange={evt => this.updateInputValue(evt)}
 							/>
 							<Button
-								variant="outline-success"
+								variant="success"
 								disabled={this.state.isAddingBoat}
 								onClick={!this.state.isAddingBoat ? this.handleClick : null }
 							>Add new boat</Button>
 						</Form>
 					</Navbar.Collapse>
 				</Navbar>
-				<Container>
+				<Container fluid>
 					<DragDropContext
 						onDragEnd={this.onDragEnd}
 					>
-						<SwimlaneContainer>
+						<Row>
 						{
 							this.state.swimlaneOrder.map(swimlaneOrderIndex => {
 								const swimlane = this.state.swimlanes.filter(swimlane => swimlane._id === swimlaneOrderIndex)[0];
@@ -268,7 +267,7 @@ class App extends React.Component {
 								return <Swimlane key={swimlane._id} swimlane={swimlane} boats={boats} />;
 							})
 						}
-						</SwimlaneContainer>
+						</Row>
 					</DragDropContext>
 				</Container>
 			</Container>
