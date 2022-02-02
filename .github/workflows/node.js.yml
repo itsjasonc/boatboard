@@ -30,9 +30,12 @@ jobs:
       uses: SpicyPizza/create-envfile@v1
       with:
               envkey_REACT_APP_BOATAPI_HOST: ${{ secrets.REACT_APP_BOATAPI_HOST }}
+              envkey_REACT_APP_BOATWS_HOST: ${{ secrets.REACT_APP_BOATWS_HOST }}
               file_name: .env.development.local
     - name: Build React
       run: npm run build
+      env:
+        CI: false
 
     - name: Generate deployment package
       run: zip -r deploy.zip . -x '*.git*'
