@@ -16,7 +16,7 @@ const SwimlaneContainer = styled.div`
 	display: flex;
 `;
 
-const requestURL = "http://ec2-3-96-46-136.ca-central-1.compute.amazonaws.com:3001/api";
+const requestURL = process.env.REACT_APP_BOATAPI_HOST + "/api";
 
 class App extends React.Component {
 	
@@ -24,42 +24,6 @@ class App extends React.Component {
 	constructor(props) {
 		super(props);
 
-		/*
-		 * DB
-		 * ====================
-		 * Swimlane {
-		 * 	_id: ObjectId
-		 * 	name: String
-		 * }
-		 * Boat {
-		 * 	_id: ObjectId
-		 * 	name: String
-		 * 	inLane: ObjectId Ref Swimlane
-		 * }
-		 *
-		 * React Display
-		 * ====================
-		 * Swimlanes [
-		 * 	{
-		 * 		"_id": "",
-		 * 		"name": "",
-		 *		"boatsIds": [],
-		 *	}
-		 * ]
-		 *
-		 * SwimlaneOrder [
-		 * 	"_id", "_id", ...
-		 * ]
-		 */
-
-		/*
-		this.state = {
-			swimlanes: [],
-			boats: [],
-			swimlaneOrder: [],
-			DataisLoaded: false,
-		};
-		*/
 		this.state = {
 			swimlanes: [],
 			boats: [],
@@ -76,7 +40,10 @@ class App extends React.Component {
 	componentDidMount() {
 		const requestOptions = {
 			method: "GET",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Access-Control-Allow-Origin": "*",
+				"Content-Type": "application/json"
+			},
 			mode: "cors",
 		};
 
@@ -134,7 +101,10 @@ class App extends React.Component {
 			// const startBoatList = Array.from(startSwimlane
 			const requestOptions = {
 				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Access-Control-Allow-Origin": "*",
+					"Content-Type": "application/json"
+				},
 				body: JSON.stringify({ inLane: destination.droppableId })
 			};
 
@@ -165,8 +135,11 @@ class App extends React.Component {
 
 			const requestOptions = {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ name: this.state.newBoatName })
+				headers: {
+					"Access-Control-Allow-Origin": "*",
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({ name: this.state.newBoatName, inLane: this.state.swimlanes[0]._id })
 			};
 
 			fetch(
