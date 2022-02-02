@@ -26,6 +26,10 @@ const BoatList = styled.div`
 `;
 
 export default class Swimlane extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+
 	render() {
 		return (
 			<Container>

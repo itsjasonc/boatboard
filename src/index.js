@@ -47,6 +47,8 @@ class App extends React.Component {
 				this.updateBoat(data.id, data.destination);
 			} else if (data.type === "newBoat") {
 				this.addBoat(data.boat);
+			} else if (data.type === "deleteBoat") {
+				this.deleteBoat(data.id);
 			}
 		});
 
@@ -80,6 +82,8 @@ class App extends React.Component {
 			}
 
 			this.setState(data);
+		}).catch((err) => {
+			console.log(err);
 		});
 	}
 
@@ -103,6 +107,19 @@ class App extends React.Component {
 			boats: [
 				...this.state.boats,
 				boat,
+			]
+		});
+	}
+
+	deleteBoat = (id) => {
+		var index = this.state.boats.findIndex(x => x._id == id);
+		
+		if (index == -1) return;
+
+		this.setState({
+			boats: [
+				...this.state.boats.slice(0, index),
+				...this.state.boats.slice(index+1),
 			]
 		});
 	}
@@ -155,6 +172,8 @@ class App extends React.Component {
 					"destination": destination.droppableId,
 				});
 				this.updateBoat(result._id, destination.droppableId);
+			}).catch((err) => {
+				console.log(err);
 			});
 		}
 	}
@@ -184,6 +203,11 @@ class App extends React.Component {
 					"boat": result,
 				});
 				this.addBoat(result);
+			}).catch((err) => {
+				console.log(err);
+				this.setState(prevState => ({
+					isAddingBoat: false
+				}));
 			});
 
 			console.log(this.state.newBoatName);
