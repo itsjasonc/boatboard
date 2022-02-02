@@ -2,6 +2,10 @@ import React from 'react';
 import styled from 'styled-components';
 import { Draggable } from 'react-beautiful-dnd';
 import CloseButton from 'react-bootstrap/CloseButton';
+/*
+import Card from 'react-bootstrap/Card';
+import Col from 'react-bootstrap/Col';
+*/
 import socketIOClient from 'socket.io-client';
 
 const Container = styled.div`
@@ -39,7 +43,9 @@ export default class Boat extends React.Component {
 
 	componentDidMount() {
 		// We don't receive messages here, we only send them
-		this.state.socket = socketIOClient(socketURL);
+		this.setState({
+			socket: socketIOClient(socketURL),
+		});
 	}
 
 	handleDelete = (id) => {

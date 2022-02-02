@@ -7,7 +7,6 @@ import { DragDropContext } from 'react-beautiful-dnd';
 import Navbar from 'react-bootstrap/Navbar';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
-import FormControl from 'react-bootstrap/FormControl';
 import Button from 'react-bootstrap/Button';
 import socketIOClient from 'socket.io-client';
 
@@ -41,15 +40,18 @@ class App extends React.Component {
 
 	componentDidMount() {
 		this.handleClick = this.handleClick.bind(this);
-		this.state.socket = socketIOClient(socketURL);
-		this.state.socket.on("message", data => {
-			if (data.type === "moveBoat") {
-				this.updateBoat(data.id, data.destination);
-			} else if (data.type === "newBoat") {
-				this.addBoat(data.boat);
-			} else if (data.type === "deleteBoat") {
-				this.deleteBoat(data.id);
-			}
+		this.setState({
+			socket: socketIOClient(socketURL),
+		}, () => {
+			this.state.socket.on("message", data => {
+				if (data.type === "moveBoat") {
+					this.updateBoat(data.id, data.destination);
+				} else if (data.type === "newBoat") {
+					this.addBoat(data.boat);
+				} else if (data.type === "deleteBoat") {
+					this.deleteBoat(data.id);
+				}
+			});
 		});
 
 		const requestOptions = {
@@ -88,9 +90,9 @@ class App extends React.Component {
 	}
 
 	updateBoat = (id, destination) => {
-		var index = this.state.boats.findIndex(x => x._id == id);
+		var index = this.state.boats.findIndex(x => x._id === id);
 
-		if (index == -1) return;
+		if (index === -1) return;
 		
 		this.setState({
 			boats: [
@@ -112,9 +114,9 @@ class App extends React.Component {
 	}
 
 	deleteBoat = (id) => {
-		var index = this.state.boats.findIndex(x => x._id == id);
+		var index = this.state.boats.findIndex(x => x._id === id);
 		
-		if (index == -1) return;
+		if (index === -1) return;
 
 		this.setState({
 			boats: [
