@@ -9,6 +9,7 @@ import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import FormControl from 'react-bootstrap/FormControl';
 import Button from 'react-bootstrap/Button';
+import socketIOClient from 'socket.io-client';
 
 import Swimlane from './swimlane';
 
@@ -17,9 +18,12 @@ const SwimlaneContainer = styled.div`
 `;
 
 const requestURL = process.env.REACT_APP_BOATAPI_HOST + "/api";
+const socketURL = process.env.REACT_APP_BOATWS_HOST;
 
+/*
+ * TODO: Use Redux to properly handle the array..
+ */
 class App extends React.Component {
-	
 	// Constructor
 	constructor(props) {
 		super(props);
@@ -31,13 +35,21 @@ class App extends React.Component {
 			DataisLoaded: false,
 			isAddingBoat: false,
 			newBoatName: "",
+			socket: null,
 		};
-
-		this.handleClick = this.handleClick.bind(this);
 	}
 
-	// ComponentDidMount is used to execute the API fetch
 	componentDidMount() {
+		this.handleClick = this.handleClick.bind(this);
+		this.state.socket = socketIOClient(socketURL);
+		this.state.socket.on("message", data => {
+			if (data.type === "moveBoat") {
+				this.updateBoat(data.id, data.destination);
+			} else if (data.type === "newBoat") {
+				this.addBoat(data.boat);
+			}
+		});
+
 		const requestOptions = {
 			method: "GET",
 			headers: {
@@ -48,8 +60,8 @@ class App extends React.Component {
 		};
 
 		Promise.all([
-			fetch(requestURL + "/swimlane", requestOptions), //.then(response => response.json()),
-			fetch(requestURL + "/boat", requestOptions), //.then(response => response.json()),
+			fetch(requestURL + "/swimlane", requestOptions),
+			fetch(requestURL + "/boat", requestOptions),
 		]).then(
 			results => Promise.all(results.map(r => r.json()))
 		).then(([swimlanes, boats]) => {
@@ -68,6 +80,30 @@ class App extends React.Component {
 			}
 
 			this.setState(data);
+		});
+	}
+
+	updateBoat = (id, destination) => {
+		var index = this.state.boats.findIndex(x => x._id == id);
+
+		if (index == -1) return;
+		
+		this.setState({
+			boats: [
+				...this.state.boats.slice(0, index),
+				Object.assign({}, this.state.boats[index], { inLane: destination }),
+				...this.state.boats.slice(index+1),
+			]
+		});
+
+	}
+
+	addBoat = (boat) => {
+		this.setState({
+			boats: [
+				...this.state.boats,
+				boat,
+			]
 		});
 	}
 
@@ -113,16 +149,12 @@ class App extends React.Component {
 			).then(
 				response => response.json()
 			).then(result => {
-				// Update the Boat list inLane id
-				const newBoats = Array.from(this.state.boats);
-				newBoats.filter(boat => boat._id === result._id).map(boat => {
-					boat.inLane = destination.droppableId;
+				this.state.socket.emit("message", {
+					"type": "moveBoat",
+					"id": result._id,
+					"destination": destination.droppableId,
 				});
-				const newState = {
-				...this.state,
-					boats: newBoats
-				};
-				this.setState(newState);
+				this.updateBoat(result._id, destination.droppableId);
 			});
 		}
 	}
@@ -147,16 +179,11 @@ class App extends React.Component {
 			).then(
 				response => response.json()
 			).then(result => {
-				console.log(result);
-				// Add the new boat to the boats list
-				const newBoats = Array.from(this.state.boats);
-				newBoats.push(result);
-				const newState = {
-				...this.state,
-					boats: newBoats,
-					isAddingBoat: false
-				};
-				this.setState(newState);
+				this.state.socket.emit("message", {
+					"type": "newBoat",
+					"boat": result,
+				});
+				this.addBoat(result);
 			});
 
 			console.log(this.state.newBoatName);

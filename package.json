@@ -14,11 +14,14 @@
     "react-scripts": "5.0.0",
     "request-promise": "^4.2.6",
     "reset-css": "^5.0.1",
+    "serve": "^13.0.2",
+    "socket.io-client": "^4.4.1",
     "styled-components": "^5.3.3",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "node_modules/react-scripts/bin/react-scripts.js start",
+    "serve": "node_modules/serve/bin/serve.js -s build",
     "build": "node_modules/react-scripts/bin/react-scripts.js build",
     "test": "node_modules/react-scripts/bin/react-scripts.js test",
     "eject": "node_modules/react-scripts/bin/react-scripts.js eject"
